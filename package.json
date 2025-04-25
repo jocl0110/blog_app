@@ -1,0 +1,22 @@
+{
+  "name": "blog_app",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jose Izquierdo",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "mysql2": "^3.14.0",
+    "nodemailer": "^6.10.1"
+  },
+  "devDependencies": {
+    "dotenv": "^16.5.0"
+  }
+}
