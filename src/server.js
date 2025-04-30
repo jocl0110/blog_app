@@ -2,6 +2,7 @@ import express from "express";
 import "dotenv/config";
 import pool from "./utils/database.js";
 import userRouter from "./routes/user.routes.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.set("views", "./src/views");
 app.use(express.static("src/public"));
 
 // Middlewares
+app.use(cookieParser());
 app.use(express.json());
 
 // Routes
@@ -21,7 +23,7 @@ app.get("/", (req, res) => {
     title: "Blog App",
   });
 });
-app.use("/api/users", userRouter);
+app.use("/api/auth", userRouter);
 
 // Test database connection
 pool

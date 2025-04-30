@@ -1,11 +1,9 @@
 import { Router } from "express";
+import UserController from "../controllers/user.controller.js";
 
 const userRouter = Router();
 
-userRouter.get("/register", (req, res) => {
-  res.render("register", {
-    title: "Blog App/Register",
-  });
-});
+userRouter.post("/register", UserController.registerUser);
+userRouter.get("/dashboard", UserController.getAllUsers);
 
 export default userRouter;
