@@ -4,8 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%=title %></title>
+    <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body>
-    <h1>Home Page</h1>
+    <%- include("./partials/header.ejs") %>
+    <main class="container">
+      <h2>Welcome to the My Blog App</h2>
+      <a href="api/auth/register">Register</a>
+      <a href="api/auth/login">Login</a>
+      <p>
+        This is a simple blog application built with Node.js, Express, and
+        MySQL.
+      </p>
+    </main>
+
+    <script src="/js/main.js"></script>
+    <%- include("./partials/footer.ejs") %>
   </body>
 </html>
