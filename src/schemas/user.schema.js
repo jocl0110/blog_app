@@ -12,9 +12,23 @@ export const userRegistrationSchema = z
       .max(20, "Username must be at most 20 characters long")
       .regex(
         /^[a-zA-Z0-9_]+$/,
-        "Username can only contain letters, numbers, and underscores"
+        "Username cannot contain spaces. Use only letters, numbers, and underscores"
       ),
-
+    first_name: z
+      .string()
+      .min(2, "First name must be at least 2 characters long")
+      .max(20, "First name must be at most 20 characters long")
+      .regex(/^[a-zA-Z\s]+$/, "First name can only contain letters and spaces"),
+    last_name: z
+      .string()
+      .min(2, "Last name must be at least 2 characters long")
+      .max(36, "Last name must be at most 36 characters long")
+      .regex(/^[a-zA-Z\s]+$/, "Last name can only contain letters and spaces"),
+    profile_image: z
+      .string()
+      .url("Profile image must be a valid URL")
+      .optional()
+      .nullable(),
     email: z
       .string()
       .email("Invalid email address")
@@ -37,9 +51,25 @@ export const userRegistrationSchema = z
 
 // Schema for user login
 export const userLoginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-
-  password: z.string().min(1, "Password is required"),
+  username: z
+    .string({
+      required_error: "Username is required",
+      invalid_type_error: "Username must be a string",
+    })
+    .min(3, "Username must be at least 3 characters long")
+    .max(20, "Username must be at most 20 characters long")
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Username cannot contain spaces. Use only letters, numbers, and underscores"
+    )
+    .trim(),
+  password: z
+    .string({
+      required_error: "Password is required",
+      invalid_type_error: "Password must be a string",
+    })
+    .min(1, "Password cannot be empty")
+    .max(100, "Password is too long"),
 });
 
 // Schema for user update

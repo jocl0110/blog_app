@@ -1,0 +1,17 @@
+<%- include("./partials/header.ejs") %>
+<div>
+  <h2>Login</h2>
+  <form action="/api/auth/login" method="POST">
+    <div>
+      <label for="username">Username</label>
+      <input type="text" name="username" id="username" required />
+      <label for="password">Password</label>
+      <input type="password" name="password" id="password" required />
+    </div>
+    <button type="submit">Login</button>
+  </form>
+  <% if(error) { %>
+  <p><%=error %></p>
+  <% } %>
+</div>
+<%- include("./partials/footer.ejs") %>

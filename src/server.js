@@ -3,6 +3,7 @@ import "dotenv/config";
 import pool from "./utils/database.js";
 import userRouter from "./routes/user.routes.js";
 import cookieParser from "cookie-parser";
+import { checkAuth, protect } from "./middlewares/auth.js";
 
 const app = express();
 
@@ -15,12 +16,15 @@ app.use(express.static("src/public"));
 
 // Middlewares
 app.use(cookieParser());
+app.use(checkAuth);
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Routes
 app.get("/", (req, res) => {
   res.render("home", {
     title: "Blog App",
+    user: req.user,
   });
 });
 app.use("/api/auth", userRouter);
