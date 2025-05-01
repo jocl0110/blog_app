@@ -1,18 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
-    <div>
-      <% if(users) { %> <%users.forEach(user => { %>
-      <div>
-        <p><%=user.first_name %></p>
-        <img src="<%=user.profile_image %>" />
-      </div>
-      <% }) %> <% } %>
-    </div>
-  </body>
-</html>
+<%- include("./partials/header.ejs") %>
+
+<div style="padding: 20px">
+  <h1>Welcome, <%= user.username %>!</h1>
+
+  <div style="margin-top: 20px">
+    <form action="/api/auth/logout" method="POST">
+      <button
+        type="submit"
+        style="
+          padding: 8px 16px;
+          background-color: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        "
+      >
+        Logout
+      </button>
+    </form>
+  </div>
+</div>
+
+<%- include("./partials/footer.ejs") %>
