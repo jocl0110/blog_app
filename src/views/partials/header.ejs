@@ -6,6 +6,8 @@
         <a href="/" class="btn">Home</a>
         <a href="api/posts" class="btn">Posts</a>
         <% if(locals.user) { %>
+        <a href="/api/auth/dashboard" class="btn">Profile</a>
+        <a href="/api/posts/create" class="btn">Create a Post</a>
         <form action="/api/auth/logout" method="post">
           <button type="submit">Logout</button>
         </form>

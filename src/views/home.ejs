@@ -10,8 +10,14 @@
     <%- include("./partials/header.ejs") %>
     <main class="container">
       <h2>Welcome to the My Blog App</h2>
-      <a href="api/auth/register">Register</a>
-      <a href="api/auth/login">Login</a>
+
+      <% if(user) { %>
+      <p>Hello <%=user.username %>, Welcome Back!</p>
+      <a href="/api/auth/dashboard">Go to your profile</a>
+      <%} else { %>
+      <a href="api/auth/register" class="btn">Register</a>
+      <a href="api/auth/login" class="btn">Login</a>
+      <% } %>
       <p>
         This is a simple blog application built with Node.js, Express, and
         MySQL.

@@ -2,8 +2,9 @@ import express from "express";
 import "dotenv/config";
 import pool from "./utils/database.js";
 import userRouter from "./routes/user.routes.js";
+import postRouter from "./routes/post.routes.js";
 import cookieParser from "cookie-parser";
-import { checkAuth, protect } from "./middlewares/auth.js";
+import { checkAuth } from "./middlewares/auth.js";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
   });
 });
 app.use("/api/auth", userRouter);
+app.use("/api/posts", postRouter);
 
 // Test database connection
 pool
