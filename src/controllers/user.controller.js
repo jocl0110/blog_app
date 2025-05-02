@@ -123,10 +123,7 @@ class UserController {
         sameSite: "strict",
         expires: new Date(0),
       });
-      res.status(200).json({
-        success: true,
-        message: "logged out successfully",
-      });
+      res.render("login", { error: null });
     } catch (error) {
       console.error("Logout error:", error);
       res.status(500).json({

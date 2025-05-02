@@ -1,0 +1,27 @@
+<%- include("./partials/header.ejs") %>
+
+<div class="container">
+  <h1>Posts</h1>
+  <div class="posts-grid">
+    <% if(!posts || posts.length === 0) { %>
+    <p>There are no posts yet</p>
+    <% } else { %> <% posts.forEach(post => { %>
+    <div class="post-card">
+      <div class="images-container">
+        <% if(post.post_images && Array.isArray(post.post_images)) { %> <%
+        post.post_images.forEach(imageUrl => { %>
+        <img
+          src="<%= imageUrl %>"
+          alt="Post Image"
+          onerror="console.error('Image failed to load:', this.src)"
+        />
+        <% }) %> <% } %>
+      </div>
+      <h3><%= post.title %></h3>
+      <p><%= post.content %></p>
+    </div>
+    <% }) %> <% } %>
+  </div>
+</div>
+
+<%- include("./partials/footer.ejs") %>

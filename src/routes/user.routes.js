@@ -9,6 +9,9 @@ userRouter.post("/login", UserController.loginUser);
 userRouter.get("/login", (req, res) => {
   res.render("login", { error: null });
 });
+userRouter.get("/register", (req, res) => {
+  res.render("register", { error: null });
+});
 userRouter.get("/dashboard", protect, (req, res) => {
   res.render("dashboard", { error: null, user: req.user });
 });
