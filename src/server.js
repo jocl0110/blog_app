@@ -5,6 +5,7 @@ import userRouter from "./routes/user.routes.js";
 import postRouter from "./routes/post.routes.js";
 import cookieParser from "cookie-parser";
 import { checkAuth } from "./middlewares/auth.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/auth", userRouter);
 app.use("/api/posts", postRouter);
+app.use(errorHandler);
 
 // Test database connection
 pool

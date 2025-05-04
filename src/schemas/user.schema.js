@@ -42,9 +42,9 @@ export const userRegistrationSchema = z
         "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
       ),
 
-    confirmPassword: z.string(),
+    confirm_password: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.password === data.confirm_password, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
