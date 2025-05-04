@@ -1,3 +1,4 @@
+import { AppError } from "../middlewares/errorHandler.js";
 import {
   userLoginSchema,
   userRegistrationSchema,
@@ -6,48 +7,142 @@ import { hashPassword } from "../utils/bcrypt.js";
 import pool from "../utils/database.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { generateVerificationToken } from "../utils/emailVerification.js";
+import { sendVerificationEmail } from "../config/nodeMailer.js";
 
 class UserController {
   constructor() {}
   static registerUser = async (req, res) => {
     try {
-      // Validate data
-      const validatedData = userRegistrationSchema.parse(req.body);
+      // Sanitize and validate  input data
+      const validatedData = {
+        ...userRegistrationSchema.parse(req.body),
+        username: req.body.username.toLowerCase().trim(),
+        email: req.body.email.toLowerCase().trim(),
+      };
 
-      console.log(validatedData);
+      // Check if the user already exists
+      const [existingUser] = await pool.query(
+        `SELECT username, email FROM users WHERE username = ? OR email = ?`,
+        [validatedData.username, validatedData.email]
+      );
+
+      if (existingUser.length > 0) {
+        throw new AppError(
+          existingUser[0].email.toLowerCase() === validatedData.email
+            ? "This email is already registered"
+            : "This username is already taken",
+          409,
+          existingUser[0].email.toLowerCase() === validatedData.email
+            ? "email"
+            : "username"
+        );
+      }
 
       // Hash Password
       const password_hash = await hashPassword(validatedData.password);
       const defaultImage = "/images/default.png";
-      const sql = `INSERT INTO users(username, email, password, first_name, last_name, profile_image) VALUES(?, ?, ?, ?, ?, ?)`;
-      const values = [
-        validatedData.username,
-        validatedData.email,
-        password_hash,
-        validatedData.first_name,
-        validatedData.last_name,
-        validatedData.profile_image || defaultImage,
-      ];
 
-      const [rows] = await pool.query(sql, values);
-      console.log(rows);
+      const verificationToken = generateVerificationToken();
+      const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); //24 hours
 
-      // Send Email
+      // Start Transaction
+      const connection = await pool.getConnection();
+      await connection.beginTransaction();
+      try {
+        const sql = `INSERT INTO users(username, email, password, first_name, last_name, profile_image, verification_token, verification_expires) VALUES(?, ?, ?, ?, ?, ?, ?, ?)`;
+        const values = [
+          validatedData.username,
+          validatedData.email,
+          password_hash,
+          validatedData.first_name,
+          validatedData.last_name,
+          validatedData.profile_image || defaultImage,
+          verificationToken,
+          verificationExpires,
+        ];
+        const [result] = await pool.query(sql, values);
 
-      res.status(201).json({
-        success: true,
-        message: "New User Created Successfully",
-      });
+        // Send Verification Email
+        await sendVerificationEmail(validatedData.email, verificationToken);
+        await connection.commit();
+
+        res.status(201).json({
+          success: true,
+          message:
+            "Registration Successful! Please check your email to verify your account",
+        });
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
     } catch (error) {
-      console.log(error);
+      console.error("Registration error", error);
       res.status(500).json({
         success: false,
-        message: "Error Registering user",
+        message: "Registration failed",
         error: error.message,
       });
     }
   };
-  static loginUser = async (req, res) => {
+  static verifyEmail = async (req, res, next) => {
+    try {
+      const { token } = req.params;
+
+      const [user] = await pool.query(
+        `SELECT * FROM users WHERE verification_token = ? AND verification_expires > NOW()`,
+        [token]
+      );
+      if (!user.length) {
+        throw new AppError(
+          "Invalid or expired verification token",
+          400,
+          "token"
+        );
+      }
+      await pool.query(
+        `UPDATE users SET email_verified = TRUE, verification_token = NULL, verification_expires = NULL WHERE id =?`,
+        [user[0].id]
+      );
+      res.render("verification-success", {
+        message: "Email verified successfully! You can now log in",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  static resendVerification = async (req, res, next) => {
+    try {
+      const { email } = req.body;
+
+      const [user] = await pool.query(
+        `SELECT * FROM users WHERE email = ? AND email_verified = FALSE`,
+        [email]
+      );
+      if (!user.length) {
+        throw new AppError("User not found or already verified", 400, "email");
+      }
+
+      const verificationToken = generateVerificationToken();
+      const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await pool.query(
+        "UPDATE users SET verification_token = ?, verification_expires = ? WHERE id = ?",
+        [verificationToken, verificationExpires, user[0].id]
+      );
+      await sendVerificationEmail(email, verificationToken);
+
+      res.status(200).json({
+        success: true,
+        message: "Verification email sent successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  static loginUser = async (req, res, next) => {
     try {
       // Validate login data
       const validatedData = userLoginSchema.parse(req.body);
@@ -65,6 +160,13 @@ class UserController {
           message: "Invalid Credentials",
         });
         return;
+      }
+      if (!user.email_verified) {
+        throw new AppError(
+          "Please verify your email before logging in",
+          401,
+          "email"
+        );
       }
 
       // Verify password
@@ -106,12 +208,7 @@ class UserController {
         user,
       });
     } catch (error) {
-      console.error("Login error", error);
-      res.status(500).json({
-        success: false,
-        message: "Error logging in",
-        error: error.message,
-      });
+      next(error);
     }
   };
   static logoutUser = async (req, res) => {
