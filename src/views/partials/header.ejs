@@ -4,7 +4,7 @@
       <h1>Blog App</h1>
       <div class="nav-links">
         <a href="/" class="btn">Home</a>
-        <a href="api/posts" class="btn">Posts</a>
+        <a href="/api/posts" class="btn">Posts</a>
         <% if(locals.user) { %>
         <a href="/api/auth/dashboard" class="btn">Profile</a>
         <a href="/api/posts/create" class="btn">Create a Post</a>
@@ -12,8 +12,8 @@
           <button type="submit">Logout</button>
         </form>
         <%} else { %>
-        <a href="api/auth/register" class="btn">Register</a>
-        <a href="api/auth/login" class="btn">Login</a>
+        <a href="/api/auth/register" class="btn">Register</a>
+        <a href="/api/auth/login" class="btn">Login</a>
         <% } %>
       </div>
     </nav>

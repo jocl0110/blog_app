@@ -13,6 +13,16 @@ userRouter.get("/register", (req, res) => {
   res.render("register", { error: null });
 });
 
+// Password Reset Routes
+userRouter.get("/forgot-password", (req, res) => {
+  res.render("forgot-password", {
+    error: null,
+  });
+});
+userRouter.post("/forgot-password", UserController.forgotPassword);
+userRouter.get("/reset-password/:token", UserController.getResetPassword);
+userRouter.post("/reset-password/:token", UserController.resetPassword);
+
 // Login
 userRouter.post("/login", UserController.loginUser);
 userRouter.get("/login", (req, res) => {
