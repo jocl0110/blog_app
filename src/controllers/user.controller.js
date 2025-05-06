@@ -8,7 +8,10 @@ import pool from "../utils/database.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { generateVerificationToken } from "../utils/emailVerification.js";
-import { sendVerificationEmail } from "../config/nodeMailer.js";
+import {
+  sendResetPasswordEmail,
+  sendVerificationEmail,
+} from "../config/nodeMailer.js";
 
 class UserController {
   constructor() {}
@@ -142,6 +145,97 @@ class UserController {
       next(error);
     }
   };
+  static forgotPassword = async (req, res, next) => {
+    try {
+      const { email } = req.body;
+      // Check if user exists
+
+      const [user] = await pool.query(`SELECT * FROM users WHERE email =? `, [
+        email,
+      ]);
+
+      if (!user.length) {
+        throw new AppError(
+          "If a user with this email exists, they will receive password reset instructions",
+          404,
+          "email"
+        );
+      }
+      // Generate reset token
+      const resetToken = generateVerificationToken();
+      const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      // Save reset token
+      await pool.query(
+        `UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?`,
+        [resetToken, resetExpires, user[0].id]
+      );
+
+      // Send reset email
+      await sendResetPasswordEmail(email, resetToken);
+
+      res.status(200).json({
+        success: true,
+        message:
+          "If a user with this email exists, they will receive password reset instructions",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  static getResetPassword = async (req, res, next) => {
+    try {
+      const { token } = req.params;
+
+      const [user] = await pool.query(
+        `SELECT * FROM users WHERE reset_token = ? AND reset_expires > NOW()`,
+        [token]
+      );
+
+      if (!user.length) {
+        throw new AppError("Invalid or expired reset token", 400, "token");
+      }
+
+      res.render("reset-password", { token, error: null });
+    } catch (error) {
+      next(error);
+    }
+  };
+  static resetPassword = async (req, res, next) => {
+    try {
+      const { token } = req.params;
+      const { password, confirmPassword } = req.body;
+
+      if (password !== confirmPassword) {
+        throw new AppError("Password do not match", 400, "password");
+      }
+
+      const [user] = await pool.query(
+        `SELECT * FROM users WHERE reset_token = ? AND reset_expires > NOW()`,
+        [token]
+      );
+
+      if (!user.length) {
+        throw new AppError("Invalid or expired token", 400, "token");
+      }
+
+      // Hash new password
+      const hashedPassword = await hashPassword(password);
+
+      // Update password and clear reset token
+      await pool.query(
+        `UPDATE users SET password = ?, reset_token = NULL, reset_expires = NULL WHERE id = ?`,
+        [hashedPassword, user[0].id]
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Password has been reset successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
   static loginUser = async (req, res, next) => {
     try {
       // Validate login data
@@ -161,6 +255,7 @@ class UserController {
         });
         return;
       }
+      // Check If user is verified
       if (!user.email_verified) {
         throw new AppError(
           "Please verify your email before logging in",

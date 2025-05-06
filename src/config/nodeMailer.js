@@ -37,5 +37,36 @@ export const sendVerificationEmail = async (userEmail, verificationToken) => {
     throw error;
   }
 };
+export const sendResetPasswordEmail = async (userEmail, resetToken) => {
+  const resetUrl = `${process.env.APP_URL}/api/auth/reset-password/${resetToken}`;
+
+  const emailTemplate = {
+    from: '"Blog App" <noreply@blogapp.com>',
+    to: userEmail,
+    subject: "Reset Your Password",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1>Reset Your Password</h1>
+        <p>You requested to reset your password. Click the button below to proceed:</p>
+        <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">
+          Reset Password
+        </a>
+        <p>This link will expire in 1 hour.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+          <p style="font-size: 12px; color: #666;">
+            © ${new Date().getFullYear()} Blog App. All rights reserved.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+  try {
+    await transporter.sendMail(emailTemplate);
+  } catch (error) {
+    console.error("Reset password email error", error);
+    throw error;
+  }
+};
 
 export default transporter;
