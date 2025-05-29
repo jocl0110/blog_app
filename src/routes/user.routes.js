@@ -2,6 +2,7 @@ import { Router } from "express";
 import UserController from "../controllers/user.controller.js";
 import { protect } from "../middlewares/auth.js";
 import { registerLimiter } from "../middlewares/limiter.js";
+import { uploadUserImage } from "../middlewares/upload.js";
 
 const userRouter = Router();
 
@@ -28,6 +29,19 @@ userRouter.post("/login", UserController.loginUser);
 userRouter.get("/login", (req, res) => {
   res.render("login", { error: null });
 });
+
+// Update User
+userRouter.get("/profile", async (req, res) => {
+  res.render("update-profile", {
+    user: req.user,
+  });
+});
+userRouter.put(
+  "/profile",
+  protect,
+  uploadUserImage,
+  UserController.updateProfile
+);
 
 userRouter.get("/dashboard", protect, (req, res) => {
   res.render("dashboard", { error: null, user: req.user });

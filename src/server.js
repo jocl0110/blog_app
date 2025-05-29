@@ -6,6 +6,7 @@ import postRouter from "./routes/post.routes.js";
 import cookieParser from "cookie-parser";
 import { checkAuth } from "./middlewares/auth.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import methodOverride from "method-override";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.static("src/public"));
 // Middlewares
 app.use(cookieParser());
 app.use(checkAuth);
+app.use(methodOverride("_method"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
