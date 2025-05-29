@@ -325,6 +325,9 @@ class UserController {
       });
     }
   };
+
+  // Update profile
+  static updateProfile = async (req, res, next) => {};
 }
 
 export default UserController;
